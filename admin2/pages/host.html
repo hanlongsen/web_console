@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>WEB CONSOLE</title>
+
+    <!-- Bootstrap Core CSS -->
+    <link href="../vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- MetisMenu CSS -->
+    <link href="../vendor/metisMenu/metisMenu.min.css" rel="stylesheet">
+
+    <!-- Custom CSS -->
+    <link href="../dist/css/sb-admin-2.css" rel="stylesheet">
+
+    <!-- select CSS -->
+    <link href="../dist/css/bootstrap-select.min.css" rel="stylesheet">
+
+    <!-- Morris Charts CSS -->
+    <link href="../vendor/morrisjs/morris.css" rel="stylesheet">
+
+    <!-- Custom Fonts -->
+    <link href="../vendor/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+    <!-- jQuery -->
+    <script src="../vendor/jquery/jquery.min.js"></script>
+
+
+
+    <!-- Bootstrap Core JavaScript -->
+    <script src="../vendor/bootstrap/js/bootstrap.min.js"></script>
+
+    <!-- Metis Menu Plugin JavaScript -->
+    <script src="../vendor/metisMenu/metisMenu.min.js"></script>
+
+    <!-- Morris Charts JavaScript -->
+    <script src="../vendor/raphael/raphael.min.js"></script>
+    <script src="../vendor/morrisjs/morris.min.js"></script>
+    <script src="../data/morris-data.js"></script>
+    <script src="../js/bootstrap-select.min.js"></script>
+        <!-- Custom Theme JavaScript -->
+<!--     <script src="../dist/js/sb-admin-2.js"></script> -->
+
+    
+    <script type="text/javascript">
+    var hosturl="http://10.112.184.2:8888/ssh/host/"
+    var groupurl="http://10.112.184.2:8888/ssh/hostgroup/"
+        $(document).ready(function(){ 
+           $.ajax({
+            "url":"nav.html",
+            type:"get",
+            dataType: "html",
+            success: function(msg) {
+              $("#wrapper").prepend(msg)
+              $.getScript("../dist/js/sb-admin-2.js")
+            }
+            })
+
+           $.ajax({
+                url:hosturl,
+                type:"get",
+                dataType:"json",
+                success:function(res){
+                  var tablestr=host_table(res.data)
+                  $("#main").html(tablestr) 
+                }
+            })
+
+
+           $("#real_add_group").on("click",function(){
+                var host_group_id=$("#group_selects").val()
+                var hostaddress=$("#hostaddress").val()
+                var hostport=$("#hostport").val()
+                var data={
+                    "host_group_id":host_group_id,
+                    "host_list":[{
+                        "host_ip":hostaddress,
+                        "host_port":hostport
+                    }]
+                }
+                $.ajax({
+                    url:hosturl,
+                    type:"post",
+                    data:JSON.stringify(data),
+                    dataType:"json",
+                    success:function(res){
+                        if(res.status=="200"){
+                            $('#hostmodal').modal('hide')
+                            window.location.reload()
+                        }else{
+                            alert(res.message)
+                        }
+                    }
+                })
+           })
+
+
+
+
+        });
+
+
+        function host_table(data){
+            var tablestr="<table id='host_table' class='table table-hover table-bordered'>";
+            tablestr=tablestr+"<tr>"
+                    +"<th>"+"组名"+"</th>"
+                    +"<th>"+"主机地址"+"</th>"
+                    +"<th>"+"主机端口"+"</th>"
+                    +"<th>"+"操作"+"</th>"
+                    +"</tr>"
+            for(var i=0;i<data.length;i++){
+
+              tablestr = tablestr + "<tr>"
+                    +"<td id="+data[i].id+">"+ data[i].group_name+"</td>"
+                    +"<td id="+data[i].id+">"+ data[i].host_ip+"</td>"
+                    +"<td id="+data[i].id+">"+ data[i].host_port+"</td>"
+                    +"<td> \
+                    <a id='host_edit' onclick='host_edit(" + data[i].id +")'><span class='glyphicon glyphicon-pencil'></span></a>\
+                    <a id='host_del' onclick='host_del(" + data[i].id +")'><span class='glyphicon glyphicon-remove'></span></a>\
+                    </td>"
+                    +"</tr>"
+            }
+            tablestr = tablestr + "</table>"
+            return tablestr
+        }
+
+        function host_del(id){
+            $.ajax({
+                url:hosturl+"?host_id="+id,
+                type:"delete",
+                headers: { 
+                  "Content-Type": "application/json",
+                  "X-HTTP-Method-Override": "DELETE" 
+                },
+                dataType:"json",
+                success:function(res){
+                    if (res.status=="200"){
+                        alert(res.message)
+                        window.location.reload()
+                    }else{
+                        alert(res.message)
+                    }
+                }
+              })
+        }
+        function host_add(){
+            $.ajax({
+                url:groupurl,
+                type:"get",
+                dataType:"json",
+                success:function(res){
+                    var group_select=host_select_table(res.data)
+                    console.log(group_select)
+                    $("#group_selects.selectpicker").append(group_select)
+                    $('#group_selects').selectpicker('refresh');
+                    console.log($("#group_selects").html())
+                    }
+                })
+            
+            $("#hostmodal").modal()
+
+        }
+
+        function host_select_table(data){
+            var selectstr=""
+            for(var i=0;i<data.length;i++){
+                selectstr=selectstr+"<option value="+data[i].id+">"+data[i].group_name+"</option>"
+            }
+            return selectstr
+        }
+    </script>
+    
+
+</head>
+
+<body>
+
+    <div id="wrapper">
+
+        <!-- Navigation -->
+        
+
+        <div id="page-wrapper">
+            <div class="row">
+                <div class="col-lg-12">
+                    <h1 class="page-header">HOST</h1>
+                    <div >
+                          <a class="btn btn-default" onclick="host_add()">增加主机</a>
+                    </div>
+                    <div id="main">
+                    </div>
+                </div>
+                <!-- /.col-lg-12 -->
+            </div>          
+        </div>
+    </div>
+
+
+    <div class="modal fade" id="hostmodal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <h4 class="modal-title" id="exampleModalLabel">增加主机</h4>
+          </div>
+          <div class="modal-body">
+            <form>
+                <div class="form-group">
+                    <label for="group_selects" class="control-label">主机组:</label>
+                    <select class="selectpicker form-control" data-live-search="true" id="group_selects">
+                    
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="hostaddress" class="control-label">主机地址：</label>
+                    <input type="text" class="form-control" id="hostaddress">
+                </div>
+                <div class="form-group">
+                    <label for="hostport" class="control-label">主机端口:</label>
+                    <input type="text" class="form-control" id="hostport">
+                </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <a class="btn btn-default" data-dismiss="modal" id="close">关闭</a>
+            <a class="btn btn-default" id="real_add_group">增加</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+</body>
+
+</html>

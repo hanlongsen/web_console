@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>WEB CONSOLE</title>
+
+    <!-- Bootstrap Core CSS -->
+    <link href="../vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- MetisMenu CSS -->
+    <link href="../vendor/metisMenu/metisMenu.min.css" rel="stylesheet">
+
+    <!-- Custom CSS -->
+    <link href="../dist/css/sb-admin-2.css" rel="stylesheet">
+
+    <!-- Morris Charts CSS -->
+    <link href="../vendor/morrisjs/morris.css" rel="stylesheet">
+
+    <!-- Custom Fonts -->
+    <link href="../vendor/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+    <!-- jQuery -->
+    <script src="../vendor/jquery/jquery.min.js"></script>
+
+
+
+    <!-- Bootstrap Core JavaScript -->
+    <script src="../vendor/bootstrap/js/bootstrap.min.js"></script>
+
+    <!-- Metis Menu Plugin JavaScript -->
+    <script src="../vendor/metisMenu/metisMenu.min.js"></script>
+
+    <!-- Morris Charts JavaScript -->
+    <script src="../vendor/raphael/raphael.min.js"></script>
+    <script src="../vendor/morrisjs/morris.min.js"></script>
+    <script src="../data/morris-data.js"></script>
+        <!-- Custom Theme JavaScript -->
+<!--     <script src="../dist/js/sb-admin-2.js"></script> -->
+
+    
+    <script type="text/javascript">
+        var groupurl="http://10.112.184.2:8888/ssh/hostgroup/"
+        $(document).ready(function(){ 
+           $.ajax({
+            "url":"nav.html",
+            type:"get",
+            dataType: "html",
+            success: function(msg) {
+              $("#wrapper").prepend(msg)
+              $.getScript("../dist/js/sb-admin-2.js")
+            }
+        })
+        }); 
+
+        $(document).ready(function(){
+            $.ajax({
+                url:groupurl,
+                type:"get",
+                dataType:"json",
+                success:function(res){
+                  var tablestr=hostgroup_table(res.data)
+                  $("#main").html(tablestr) 
+                }
+              })
+
+        })
+
+
+        $(document).ready(function(){
+            $("#real_add_group").on("click",function(){
+                var groupname=$("#hostgroup").val()
+                var username=$("#username").val()
+                var password=$("#password").val()
+
+                var data={
+                    "group_name":groupname,
+                    "user_name":username,
+                    "passwd":password,
+                }
+
+                $.ajax({
+                    url:groupurl,
+                    type:"post",
+                    data:JSON.stringify(data),
+                    dataType:"json",
+                    success:function(res){
+                        if(res.status=="200"){
+                            $("#hostgroupmodal").on("hide.bs.modal")
+                        }else{
+                            alert(res.message)
+                        }
+                        
+                    }
+
+                })
+            })
+        })
+
+        function hostgroup_table(data){
+            var tablestr="<table id='hostgroup_table' class='table table-hover table-bordered'>";
+            tablestr=tablestr+"<tr>"
+                    +"<th>"+"组名"+"</th>"
+                    +"<th>"+"用户名"+"</th>"
+                    +"<th>"+"操作"+"</th>"
+                    +"</tr>"
+            for(var i=0;i<data.length;i++){
+
+              tablestr = tablestr + "<tr>"
+                    +"<td id="+data[i].id+">"+ data[i].group_name+"</td>"
+                    +"<td id="+data[i].id+">"+ data[i].user_name+"</td>"
+                    +"<td> \
+                    <a id='host_edit' onclick='host_group_edit(" + data[i].id +")'><span class='glyphicon glyphicon-pencil'></span></a>\
+                    <a id='host_del' onclick='host_group_del(" + data[i].id +")'><span class='glyphicon glyphicon-remove'></span></a>\
+                    </td>"
+                    +"</tr>"
+            }
+            tablestr = tablestr + "</table>"
+            return tablestr
+          }
+
+        function host_group_edit(id){
+        $.ajax({
+            url:groupurl+"?group_id="+id,
+            type:"get",
+            dataType:"json",
+            success:function(res){
+              alert("onclick")
+            }
+          })
+        }
+
+        function host_group_del(id){
+            $.ajax({
+                url:groupurl+"?group_id="+id,
+                type:"delete",
+                headers: { 
+                  "Content-Type": "application/json",
+                  "X-HTTP-Method-Override": "DELETE" 
+                },
+                dataType:"json",
+                success:function(res){
+                    if (res.status=="200"){
+                        alert(res.message)
+                        window.location.reload()
+                    }else{
+                        alert(res.message)
+                    }
+                }
+              })
+          }
+
+        function add_group(){
+            $("#hostgroupmodal").modal()
+        }
+    </script>
+    
+
+</head>
+
+<body>
+
+    <div id="wrapper">
+
+        <!-- Navigation -->
+        
+
+        <div id="page-wrapper">
+            <div class="row">
+                <div class="col-lg-12">
+                    <h1 class="page-header">HOSTGROUP</h1>
+                    <div >
+                          <a class="btn btn-default" id="add_group" onclick="add_group()">增加主机组</a>
+                    </div>
+
+                    <div id="main">
+                    </div>
+                </div>
+
+            </div>
+                    
+        </div>
+
+
+    </div>
+
+    <div class="modal fade" id="hostgroupmodal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <h4 class="modal-title" id="exampleModalLabel">增加主机组</h4>
+          </div>
+          <div class="modal-body">
+            <form>
+              <div class="form-group">
+                <label for="hostgroup" class="control-label">主机组名：</label>
+                <input type="text" class="form-control" id="hostgroup">
+              </div>
+              <div class="form-group">
+                <label for="username" class="control-label">用户名：</label>
+                <input type="text" class="form-control" id="username">
+              </div>
+              <div class="form-group">
+                <label for="password" class="control-label">密码：</label>
+                <input type="password" class="form-control" id="password">
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <a class="btn btn-default" data-dismiss="modal" id="close">关闭</a>
+            <a class="btn btn-default" id="real_add_group">增加</a>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- /#wrapper -->
+
+
+</body>
+
+</html>
