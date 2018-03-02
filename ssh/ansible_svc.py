@@ -85,6 +85,8 @@ class PlayTask(object):
 	    return self.action('service',dict(name=svc,state='reloaded'))
 	def file(self,path,mode):
 		return self.action('file',dict(path=path,mode=mode))
+	def copy(self,src,dest):
+		return self.action('copy',dict(src=src,dest=dest))
 
 
 

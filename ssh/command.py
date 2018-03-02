@@ -36,3 +36,12 @@ class Shell(Cbase):
 		tasks.append(task)
 		success,fail,unreachable = run(self.host_list,self.user,self.passwd,tasks)
 		return self.get_result(success,fail,unreachable)	
+
+
+class Fetch(Cbase):
+	def exe(self,src):
+		tasks=[]
+		task=PlayTask().shell(cmd)
+		tasks.append(task)
+		success,fail,unreachable = run(self.host_list,self.user,self.passwd,tasks)
+		return self.get_result(success,fail,unreachable)	
