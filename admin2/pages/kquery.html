@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>WEB CONSOLE</title>
+
+    <!-- Bootstrap Core CSS -->
+    <link href="../vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- MetisMenu CSS -->
+    <link href="../vendor/metisMenu/metisMenu.min.css" rel="stylesheet">
+
+    
+
+    <!-- Morris Charts CSS -->
+    <link href="../vendor/morrisjs/morris.css" rel="stylesheet">
+
+    <!-- Custom Fonts -->
+    <link href="../vendor/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+        <!-- jQuery -->
+    <script src="../vendor/jquery/jquery.min.js"></script>
+
+    <!-- Bootstrap Core JavaScript -->
+    <script src="../vendor/bootstrap/js/bootstrap.min.js"></script>
+
+    <!-- Metis Menu Plugin JavaScript -->
+    <script src="../vendor/metisMenu/metisMenu.min.js"></script>
+
+    <!-- Morris Charts JavaScript -->
+    <script src="../vendor/raphael/raphael.min.js"></script>
+    <script src="../vendor/morrisjs/morris.min.js"></script>
+    <script src="../data/morris-data.js"></script>
+
+    <!-- new add css -->
+    <link href="../dist/css/sb-admin-2.css" rel="stylesheet">
+    <link href="../dist/css/bootstrap-select.min.css" rel="stylesheet">
+    <link href="../dist/css/combo.select.css" rel="stylesheet">
+    <link href="../css/bootstrap-table.css" rel="stylesheet">
+    <!-- new add js-->
+    <script src="../js/bootstrap-select.min.js"></script>
+    <script src="../js/jquery.combo.select.js"></script>
+    <script src="../js/bootstrap-table.js"></script>
+    <script src="../js/bootstrap-table-export.js"></script>
+    <script src="../js/bootstrap-table-filter.js"></script>
+    
+    
+
+    
+    <script type="text/javascript">
+    var nsurl="http://10.112.184.2:8888/k8s/k8sns/"
+    var resourceurl="http://10.112.184.2:8888/k8s/k8sresource/"
+    var eventurl="http://10.112.184.2:8888/k8s/event/"
+        $(document).ready(function(){ 
+           $.ajax({
+            "url":"nav.html",
+            type:"get",
+            dataType: "html",
+            success: function(msg) {
+              $("#wrapper").prepend(msg)
+              $.getScript("../dist/js/sb-admin-2.js")
+                }
+            })
+
+           $.ajax({
+            url:nsurl,
+            type:"get",
+            dataType:"json",
+            success:function(res){
+                var nsselect=creatensselect(res.data)
+                $("#ResourceNameSpace.selectpicker").append(nsselect)
+                $("#ResourceNameSpace").selectpicker("refresh")
+            }
+           })
+
+           function creatensselect(data){
+                var selectstr=""
+                for(var i=0;i<data.length;i++){
+                    selectstr=selectstr+"<option value="+data[i]+">"+data[i]+"</option>"
+                }
+                return selectstr
+           }
+           //create_ns_select
+
+           $("#search_resource").on("click",function(){
+                var kind=$("#ResourceKind").val()
+                var namespace=$("#ResourceNameSpace").val()
+                var name=$("#ResourceName").val()
+                if(kind==""){
+                    alert("kind not be define")
+                    return
+                }
+                
+                $.ajax({
+                    url:resourceurl+"?kind="+kind+"&namespace="+namespace+"&name="+name,
+                    type:"get",
+                    dataType:"json",
+                    success:function(res){
+                        var rstable=""
+                        if(res.data.length==0){
+                            $("#main").html("<p>查询结果为空</p>")
+                        }else if(kind=="pod"){
+                            createpodtable(res.data)
+                        }else if(kind=="deployment"){
+                            createcontrolltable(res.data)
+                        }
+
+                    }
+                })
+           })
+           function createpodtable(data){
+                var rows=[]
+                for(var i=0;i<data.length;i++){
+                    rows.push({
+                        "name":data[i].name,
+                        "namespace":data[i].namespace,
+                        "pod_ip":data[i].pod_ip,
+                        "host_ip":data[i].host_ip,
+                        "status":data[i].status,
+                        "create_time":data[i].create_time
+                    })
+                }
+                var columns=[{
+                        field:"name",
+                        title:"name",
+                        sortable:"true"
+                    },{
+                        field:"namespace",
+                        title:"namespace",
+                        sortable:"true"
+                    },{
+                        field:"pod_ip",
+                        title:"pod_ip",
+                        sortable:"true"
+                    },{
+                        field:"host_ip",
+                        title:"host_ip",
+                        sortable:"true"
+                    },{
+                        field:"status",
+                        title:"status",
+                        sortable:"true"
+                    },{
+                        field:"create_time",
+                        title:"create_time",
+                        sortable:"true"
+                    }]
+
+                createtable(columns,rows)
+
+           }
+
+           function createcontrolltable(data){
+                var rows=[]
+                for(var i=0;i<data.length;i++){
+                    rows.push({
+                        "name":data[i].name,
+                        "namespace":data[i].namespace,
+                        "current":data[i].current,
+                        "available":data[i].available,
+                        "updated_replicas":data[i].updated_replicas,
+                        "desired":data[i].desired,
+                        "create_time":data[i].create_time
+                    })
+                }
+                var columns=[{
+                        field:"name",
+                        title:"name",
+                        sortable:"true"
+                    },{
+                        field:"namespace",
+                        title:"namespace",
+                        sortable:"true"
+                    },{
+                        field:"current",
+                        title:"current",
+                        sortable:"true"
+                    },{
+                        field:"available",
+                        title:"available",
+                        sortable:"true"
+                    },{
+                        field:"updated_replicas",
+                        title:"updated_replicas",
+                        sortable:"true"
+                    },{
+                        field:"desired",
+                        title:"desired",
+                        sortable:"true"
+                    },{
+                        field:"create_time",
+                        title:"create_time",
+                        sortable:"true"
+                    }]
+                createtable(columns,rows)
+           }
+           createtable()
+           function createtable(columns,data){
+                $('#main').bootstrapTable({
+                    showRefresh:true,
+                    pageSize: 20,
+                    pageNumber:1,
+                    pageList: [10, 20, 50, 100, 200, 500],
+                    search: true,
+                    sidePagination: "server",
+                    columns:columns,
+                    data:data
+                })
+           }
+
+            //通过group_select 生成checkbox
+
+            
+
+        }); 
+    </script>
+    
+
+</head>
+
+<body>
+
+    <div id="wrapper">
+
+        <!-- Navigation -->
+        
+
+        <div id="page-wrapper">
+            <div class="row">
+                <div class="col-lg-12">
+                    <h1 class="page-header">RM</h1>
+
+                    <div class="form-group col-lg-2 ">
+                        <label for="ResourceKind" class="control-label">ResourceKind</label>
+                        <select class="selectpicker form-control " data-live-search="true" title="ResourceKind" id="ResourceKind">
+                        <option value="deployment">deployment</option>
+                        <option value="pod">pod</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group col-lg-2 ">
+                        <label for="ResourceNameSpace" class="control-label">ResourceNameSpace</label>
+                        <select class="selectpicker form-control " data-live-search="true" title="ResourceNameSpace" id="ResourceNameSpace">
+                        </select>
+                    </div>
+
+                    <div class="form-group col-lg-2 ">
+                        <label for="ResourceName" class="control-label">ResourceName</label>
+                        <select class="selectpicker form-control " data-live-search="true" title="ResourceName" id="ResourceName">
+                        </select>
+                        
+                    </div>
+
+                    <div class="form-group col-lg-1 ">
+                        <label>Search</label>
+                        <a class="btn btn-default"  role="button" id="search_resource">Search</a>
+                    </div>
+
+                    <div class="col-lg-12" id="main">
+                        
+                    </div>
+
+
+                </div>
+                <!-- /.col-lg-12 -->
+            </div>
+            
+
+            
+        </div>
+        <!-- /#page-wrapper -->
+
+    </div>
+    <!-- /#wrapper -->
+
+
+</body>
+
+</html>

@@ -125,10 +125,11 @@ class ShellView(View):
 		c = Shell(user,passwd,host_list)
 		result = c.exe(cmd)
 		print(result)
-		return jresp(set_response("200","shell exec successd",result))
+		return jresp(set_response("200","shell exec successd",result)) 
 			
 	
 class VimView(View):
 	def get(self,request,*args,**kwargs):
 		pass
 		
+

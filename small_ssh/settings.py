@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'corsheaders',
 	
 	'ssh',
+    'k8s',
 ]
 
 MIDDLEWARE = [

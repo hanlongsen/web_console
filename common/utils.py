@@ -19,5 +19,12 @@ def jresp(res):
 	jr['Access-Control-Allow-Headers'] = 'X-HTTP-Method-Override,cache-control,content-type,hash-referer,x-requested-with'
 	return jr
 
+class Result(object):
+	@staticmethod
+	def error(message):
+		return jresp(set_response("500",message))
 
+	@staticmethod
+	def ok(message,data=[]):
+		return jresp(set_response("200",message,data))
 
