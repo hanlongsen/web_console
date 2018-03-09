@@ -89,45 +89,41 @@
                 return selectstr
            }
            //create_ns_select
-
+           
            $("#search_resource").on("click",function(){
                 var kind=$("#ResourceKind").val()
                 var namespace=$("#ResourceNameSpace").val()
-                var name=$("#ResourceName").val()
-                if(kind==""){
-                    alert("kind not be define")
-                    return
+                var name=$("#ResourceName").val()   
+                if(kind==''){
+                    alert("kind must be define")
                 }
-                
-                $.ajax({
-                    url:resourceurl+"?kind="+kind+"&namespace="+namespace+"&name="+name,
-                    type:"get",
-                    dataType:"json",
-                    success:function(res){
-                        var rstable=""
-                        if(res.data.length==0){
-                            $("#main").html("<p>查询结果为空</p>")
-                        }else if(kind=="pod"){
-                            createpodtable(res.data)
-                        }else if(kind=="deployment"){
-                            createcontrolltable(res.data)
-                        }
-
-                    }
-                })
+                $("#main").bootstrapTable('destroy'); 
+                createtable(kind)
+                $('#main').bootstrapTable('refresh',{"url":resourceurl+"?kind="+kind+"&namespace="+namespace+"&name="+name})
            })
-           function createpodtable(data){
-                var rows=[]
-                for(var i=0;i<data.length;i++){
-                    rows.push({
-                        "name":data[i].name,
-                        "namespace":data[i].namespace,
-                        "pod_ip":data[i].pod_ip,
-                        "host_ip":data[i].host_ip,
-                        "status":data[i].status,
-                        "create_time":data[i].create_time
-                    })
+
+           function createtable(kind,namespace,name){
+                var columns=[]
+                if(kind=="pod"){
+                    columns=createpodcolumns()
+                }else if(kind="deployment"){
+                    columns=createcontrollcolumns()
                 }
+                $('#main').bootstrapTable({
+                    url:resourceurl+"?kind="+kind+"&namespace="+namespace+"&name="+name,
+                    method:"get",
+                    dataType:"json",
+                    cache: false,
+                    contentType: "application/x-www-form-urlencoded",
+                    responseHandler:function(res){
+                        return res.data
+                    },
+                    search: true,
+                    columns:columns,
+                    // data:rows
+                })
+           }
+           function createpodcolumns(){
                 var columns=[{
                         field:"name",
                         title:"name",
@@ -152,25 +148,20 @@
                         field:"create_time",
                         title:"create_time",
                         sortable:"true"
+                    },{
+                        title:'event',
+                        field:'event',
+                        align:'center',
+                        //列数据格式化
+                        formatter:function(){
+                            return '<a>sdf</a>'
+                        }
                     }]
-
-                createtable(columns,rows)
+                return columns
 
            }
 
-           function createcontrolltable(data){
-                var rows=[]
-                for(var i=0;i<data.length;i++){
-                    rows.push({
-                        "name":data[i].name,
-                        "namespace":data[i].namespace,
-                        "current":data[i].current,
-                        "available":data[i].available,
-                        "updated_replicas":data[i].updated_replicas,
-                        "desired":data[i].desired,
-                        "create_time":data[i].create_time
-                    })
-                }
+           function createcontrollcolumns(){
                 var columns=[{
                         field:"name",
                         title:"name",
@@ -199,22 +190,48 @@
                         field:"create_time",
                         title:"create_time",
                         sortable:"true"
+                    },{
+                        title:'event',
+                        field:'event',
+                        align:'center',
+                        //列数据格式化
+                        formatter:function(){
+                            return '<a>sdf</a>'
+                        }
                     }]
-                createtable(columns,rows)
+                return columns
            }
-           createtable()
-           function createtable(columns,data){
-                $('#main').bootstrapTable({
-                    showRefresh:true,
-                    pageSize: 20,
-                    pageNumber:1,
-                    pageList: [10, 20, 50, 100, 200, 500],
-                    search: true,
-                    sidePagination: "server",
-                    columns:columns,
-                    data:data
-                })
-           }
+           // function createpodrows(data){
+           //      var rows=[]
+           //      for(var i=0;i<data.length;i++){
+           //          rows.push({
+           //              "name":data[i].name,
+           //              "namespace":data[i].namespace,
+           //              "current":data[i].current,
+           //              "available":data[i].available,
+           //              "updated_replicas":data[i].updated_replicas,
+           //              "desired":data[i].desired,
+           //              "create_time":data[i].create_time
+           //          })
+           //      }
+           //      return rows
+           // }
+           // function createcontrollrows(data){
+           //      var rows=[]
+           //      for(var i=0;i<data.length;i++){
+           //          rows.push({
+           //              "name":data[i].name,
+           //              "namespace":data[i].namespace,
+           //              "current":data[i].current,
+           //              "available":data[i].available,
+           //              "updated_replicas":data[i].updated_replicas,
+           //              "desired":data[i].desired,
+           //              "create_time":data[i].create_time
+           //          })
+           //      }
+           //      return rows
+           // }
+           
 
             //通过group_select 生成checkbox
 
@@ -264,7 +281,10 @@
                         <a class="btn btn-default"  role="button" id="search_resource">Search</a>
                     </div>
 
-                    <div class="col-lg-12" id="main">
+                    <div class="col-lg-12" id="main_div">
+                        <table id="main" class="table table-hover">
+                            
+                        </table>
                         
                     </div>
 

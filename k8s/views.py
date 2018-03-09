@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 
 from django.shortcuts import render
 from django.views.generic import View
-from common.utils import get_body,Result
+from common.utils import get_body,Result,jresp,set_response
 from django.http import HttpResponse
 from django.http import JsonResponse
 
@@ -31,8 +31,10 @@ class K8sResource(View):
 			result=RsFactory(kind).getforns(namespace)
 		elif namespace!="all" and name!=None:
 			result=RsFactory(kind).getforname(namespace,name)
-
 		return Result.ok("ok",result)
+
+	def options(self,request,*args,**kwargs):
+		return Result.ok('ok')
 
 
 class K8sEvent(View):
