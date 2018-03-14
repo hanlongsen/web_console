@@ -7,4 +7,5 @@ urlpatterns = [
 	url(r'^k8sns/$', views.K8sNs.as_view()),
 	url(r'^k8sresource/$', views.K8sResource.as_view()),
 	url(r'^k8sevent/$', views.K8sEvent.as_view()),
+	url(r'^test/$', views.test.as_view()),
 ]

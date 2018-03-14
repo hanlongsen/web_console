@@ -39,4 +39,13 @@ class K8sResource(View):
 
 class K8sEvent(View):
 	def get(self,request,*args,**kwargs):
-		return jresp(set_response("200","ok",GetEvent().getforns("kube-system")))
+		namespace=request.GET.get("namespace")
+		kind=request.GET.get("kind")
+		name=request.GET.get("name")
+		result=GetEvent().getforkind(namespace,kind,name)
+		return Result.ok("ok",result)
+
+
+class test(View):
+	def get(self,request,*args,**kwargs):
+		return Result.ok("ok",RsFactory("pod").getforns("kube-system"))

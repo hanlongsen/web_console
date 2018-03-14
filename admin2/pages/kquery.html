@@ -58,7 +58,7 @@
     <script type="text/javascript">
     var nsurl="http://10.112.184.2:8888/k8s/k8sns/"
     var resourceurl="http://10.112.184.2:8888/k8s/k8sresource/"
-    var eventurl="http://10.112.184.2:8888/k8s/event/"
+    var eventurl="http://10.112.184.2:8888/k8s/k8sevent/"
         $(document).ready(function(){ 
            $.ajax({
             "url":"nav.html",
@@ -102,6 +102,8 @@
                 $('#main').bootstrapTable('refresh',{"url":resourceurl+"?kind="+kind+"&namespace="+namespace+"&name="+name})
            })
 
+           
+
            function createtable(kind,namespace,name){
                 var columns=[]
                 if(kind=="pod"){
@@ -116,6 +118,15 @@
                     cache: false,
                     contentType: "application/x-www-form-urlencoded",
                     responseHandler:function(res){
+                        console.log(res.data)
+                        // var status=res.data.status
+                        // var mystatus="Running"
+                        // for(var i=0;i<status.length;i++){
+                        //     if (status[i].running==0){
+                        //         mystatus=status[i].running
+                        //     }
+                        // }
+                        // res.data.status=mystatus
                         return res.data
                     },
                     search: true,
@@ -123,6 +134,7 @@
                     // data:rows
                 })
            }
+           
            function createpodcolumns(){
                 var columns=[{
                         field:"name",
@@ -145,6 +157,14 @@
                         title:"status",
                         sortable:"true"
                     },{
+                        field:"message",
+                        title:"docker_log",
+                        sortable:"true"
+                    },{
+                        field:"restart_count",
+                        title:"restart_count",
+                        sortable:"true"
+                    },{
                         field:"create_time",
                         title:"create_time",
                         sortable:"true"
@@ -153,8 +173,10 @@
                         field:'event',
                         align:'center',
                         //列数据格式化
-                        formatter:function(){
-                            return '<a>sdf</a>'
+                        formatter:function(value, row, index, field){
+                            var name=row.name
+                            var namespace=row.namespace
+                            return "<span class='glyphicon glyphicon-log-in' data-toggle='popover' title='cat event' aria-hidden='true' onclick='myevent(&quot;"+namespace+"&quot;,&quot;"+name+"&quot;,&quot;pod&quot;)'></span>"
                         }
                     }]
                 return columns
@@ -195,49 +217,50 @@
                         field:'event',
                         align:'center',
                         //列数据格式化
-                        formatter:function(){
-                            return '<a>sdf</a>'
+                        formatter:function(value, row, index, field){
+                            var name=row.name
+                            var namespace=row.namespace
+                            return "<span class='glyphicon glyphicon-log-in' data-toggle='popover' title='cat event' aria-hidden='true' onclick='myevent(&quot;"+namespace+"&quot;,&quot;"+name+"&quot;,&quot;deployment&quot;)'></span>"
                         }
                     }]
                 return columns
            }
-           // function createpodrows(data){
-           //      var rows=[]
-           //      for(var i=0;i<data.length;i++){
-           //          rows.push({
-           //              "name":data[i].name,
-           //              "namespace":data[i].namespace,
-           //              "current":data[i].current,
-           //              "available":data[i].available,
-           //              "updated_replicas":data[i].updated_replicas,
-           //              "desired":data[i].desired,
-           //              "create_time":data[i].create_time
-           //          })
-           //      }
-           //      return rows
-           // }
-           // function createcontrollrows(data){
-           //      var rows=[]
-           //      for(var i=0;i<data.length;i++){
-           //          rows.push({
-           //              "name":data[i].name,
-           //              "namespace":data[i].namespace,
-           //              "current":data[i].current,
-           //              "available":data[i].available,
-           //              "updated_replicas":data[i].updated_replicas,
-           //              "desired":data[i].desired,
-           //              "create_time":data[i].create_time
-           //          })
-           //      }
-           //      return rows
-           // }
            
-
-            //通过group_select 生成checkbox
-
-            
-
         }); 
+        
+        function myevent(namespace,name,kind){
+            console.log(namespace,name,kind)
+            $.ajax({
+                url:eventurl+"?namespace="+namespace+"&name="+name+"&kind="+kind,
+                dataType:"json",
+                type:"get",
+                success:function(res){
+                    console.log(res)
+                    var mytable=c_event_table(res.data)
+                    $("#event_table").html(mytable)
+                }
+            })
+            $("#resourcemodal").modal()
+       }
+       function c_event_table(data){
+            var tablestr="<label for='event' class='control-label'>事件：</label>"
+            tablestr=+tablestr+"<table id='event_table' class='table table-hover table-bordered'>";
+            tablestr=tablestr+"<tr>"
+                    +"<th>"+"reason"+"</th>"
+                    +"<th>"+"message"+"</th>"
+                    +"<th>"+"time"+"</th>"
+                    +"</tr>"
+            for(var i=0;i<data.length;i++){
+
+              tablestr = tablestr + "<tr>"
+                    +"<td>"+ data[i].reason+"</td>"
+                    +"<td>"+ data[i].message+"</td>"
+                    +"<td>"+ data[i].create_time+"</td>"
+                    +"</tr>"
+            }
+            tablestr = tablestr + "</table>"
+            return tablestr
+       }
     </script>
     
 
@@ -283,20 +306,29 @@
 
                     <div class="col-lg-12" id="main_div">
                         <table id="main" class="table table-hover">
-                            
-                        </table>
-                        
+                        </table>       
                     </div>
-
-
                 </div>
-                <!-- /.col-lg-12 -->
-            </div>
-            
-
-            
+            </div>  
         </div>
-        <!-- /#page-wrapper -->
+
+        <div class="modal fade" id="resourcemodal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel">
+          <div class="modal-dialog" role="document">
+            <div class="modal-content">
+              <div class="modal-body">
+                <form>
+                  <div class="form-group" id="event_table">
+                    
+                  </div>
+                </form>
+              </div>
+<!--               <div class="modal-footer">
+                <a class="btn btn-default" data-dismiss="modal" id="close">关闭</a>
+                <a class="btn btn-default" id="real_add_group">增加</a>
+              </div> -->
+            </div>
+          </div>
+        </div>
 
     </div>
     <!-- /#wrapper -->
